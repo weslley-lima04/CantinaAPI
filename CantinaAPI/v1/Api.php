@@ -178,9 +178,11 @@
 					$_POST['email'],
 					$_POST['senha']
 				);
-				if($result){
+				if($result)
+				{
 					$response['error'] = false; 
 					$response['message'] = 'logado com sucesso';
+					$response['IDCliente'] = $result; 
 				}else {
 					$response['error'] = true; 
 					$response['message'] = 'email ou senha incorretos!';

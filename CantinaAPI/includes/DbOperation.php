@@ -94,15 +94,19 @@ class DbOperation
 		$stmt->bind_param("ss", $email, $senha);
 		$stmt->execute();
 		$resultado = 0;
-		while($stmt->fetch()){
+		while($stmt->fetch())
+		{
 			$resultado++;
 		}
-		//echo $resultado;
+		
+		$resp = array();
 		if($resultado > 0)
 		{
-			$id = $this->retornaIDCliente($email, $senha);
-			echo "O id do cliente é: ".$id;
-			return $id;
+			$id = array();
+			$id['ID'] = $this->retornaIDCliente($email, $senha);
+			//echo "O id do cliente é: ".$id;
+			array_push($resp, $id);
+			return $resp;
 		}
 		else
 		 return false; 

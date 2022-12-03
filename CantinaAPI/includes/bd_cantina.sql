@@ -79,7 +79,7 @@ DROP DATABASE IF EXISTS Cantina;
 	);
 
 	INSERT INTO Clientes
-    VALUES(null, 'Rubesvaldo', 'rubinho.peres@gmail.com', '40028922', '123456');
+    VALUES(null, 'Rubesvaldo', '40028922', 'rubinho.peres@gmail.com', '123456');
 
     INSERT INTO Pedidos Values
 	(null, 1, "22-08-11", "75.00");
