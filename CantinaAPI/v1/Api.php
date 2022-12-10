@@ -80,7 +80,6 @@
 					$response['message'] = 'Pedido concluído com sucesso';
 					$response['produtos'] = $db->getProdutos();
 				
-				//header('location: http://localhost/siteTCC/Gerenciamento.php');
 			break;
 
 			case 'selectProdutos':
@@ -110,6 +109,25 @@
 					$_POST['DataPedido'],
 					$_POST['ValorPedido']
 				);
+
+				case 'confirmarPedido':
+					isTheseParametersAvailable(array('Confirmado', 'IDPedido'));
+					$db = new DbOperation();
+					$result = $db->confirmarPedido(
+						$_POST['Confirmado'],
+						$_POST['IDPedido']
+					);
+					
+					if($result){
+						$response['error'] = false; 
+						$response['message'] = 'Produto atualizado com sucesso';
+						//$response['produtos'] = $db->getProdutos();
+					}else{
+						$response['error'] = true; 
+						$response['message'] = 'Algum erro ocorreu por favor tente novamente';
+					}
+					header('location: http://localhost/siteTCC/Pedidos.php');
+				break; 	
 				
 
 			
@@ -127,6 +145,56 @@
 					$response['message'] = 'Algum erro ocorreu, por favor tente novamente';
 				}
 			break;
+
+			case 'statusLogin':
+				$db = new DbOperation();
+				isTheseParametersAvailable(array('IDCliente'));
+				
+				$result = $db->statusLogin(
+					$_POST['IDCliente']
+				);
+
+				if($result)
+				{
+					
+					$response['error'] = false; 
+					$response['message'] = 'Status recebido';
+					$response['statusLogin'] = $result;
+
+				}
+				else
+				{
+					$response['error'] = true; 
+					$response['message'] = 'Algum erro ocorreu, por favor tente novamente';
+				}
+
+
+			break;
+
+			case 'pegarDadosUsuario':
+
+				$db = new DbOperation();
+				isTheseParametersAvailable(array('IDCliente'));
+				
+				$result = $db->pegarDadosUsuario(
+					$_POST['IDCliente']
+				);
+
+				if($result)
+				{
+					
+					$response['error'] = false; 
+					$response['message'] = 'dados recebidos!';
+					$response['dados'] = $result;
+
+				}
+				else
+				{
+					$response['error'] = true; 
+					$response['message'] = 'Algum erro ocorreu, por favor tente novamente';
+				}
+
+			break;	
 
 			case 'cadastraItens':
 
@@ -182,7 +250,7 @@
 				{
 					$response['error'] = false; 
 					$response['message'] = 'logado com sucesso';
-					$response['IDCliente'] = $result; 
+					$response['Dados'] = $result; 
 				}else {
 					$response['error'] = true; 
 					$response['message'] = 'email ou senha incorretos!';
@@ -298,8 +366,6 @@
                     $response['message'] = 'Pedido realizado com sucesso';
 
 
-                    //$response['pedidos'] = $db->();
-
                 }else{
 
 
@@ -321,15 +387,3 @@
 	
 
 	echo json_encode($response);
-	
-	
-/*SELECT Email, Senha FROM Clientes WHERE Email = 'jailson@mendes.com' AND Senha = '123pato'
-
-	CREATE TABLE Clientes(
-		Email varchar(100) not null unique key,
-		Senha Varchar(100) not null
-	);
-
-
-
-*/

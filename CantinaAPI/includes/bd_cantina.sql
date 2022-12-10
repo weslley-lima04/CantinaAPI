@@ -28,7 +28,8 @@ DROP DATABASE IF EXISTS Cantina;
 
 
 	
-	CREATE TABLE Produtos(
+	CREATE TABLE Produtos
+	(
 			IDProduto INT NOT NULL auto_increment PRIMARY KEY,
 			IDEstabelecimento INT NOT NULL,
 			NomeProduto VARCHAR(40) NOT NULL,
@@ -36,6 +37,16 @@ DROP DATABASE IF EXISTS Cantina;
 			QtdeEstoque INT NOT NULL,
 			Descricao VARCHAR(250) NOT NULL,
 			CONSTRAINT FK_Estabelecimento FOREIGN KEY (IDEstabelecimento) REFERENCES Estabelecimento(IDEstabelecimento)
+	);
+
+	CREATE TABLE Logado
+	(
+		statusLogin INT DEFAULT 0,
+		IDCliente INT NOT NULL,
+		DataLogin VARCHAR(20) DEFAULT NOW(),
+
+		CONSTRAINT FK_IDCliente FOREIGN KEY (IDCliente) REFERENCES Clientes(IDCliente)
+
 	);
 
 	
@@ -65,6 +76,7 @@ DROP DATABASE IF EXISTS Cantina;
 		IDCliente INT NOT NULL,
 		DataPedido VARCHAR(25) NOT NULL,
 		ValorPedido DECIMAL(5,2) NOT NULL,
+		Confirmado INT NOT NULL,
 		CONSTRAINT FK_Clientes_IDCliente FOREIGN KEY (IDCliente) REFERENCES Clientes(IDCliente)
 		
 );
@@ -81,5 +93,8 @@ DROP DATABASE IF EXISTS Cantina;
 	INSERT INTO Clientes
     VALUES(null, 'Rubesvaldo', '40028922', 'rubinho.peres@gmail.com', '123456');
 
+    INSERT INTO Clientes
+    VALUES(null, 'Manel Solucoes', '69696969', 'manel@solucao.com', '123manel');
+
     INSERT INTO Pedidos Values
-	(null, 1, "22-08-11", "75.00");
+	(null, 1, "22-08-11", "75.00", 1);

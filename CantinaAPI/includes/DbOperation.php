@@ -53,10 +53,12 @@ class DbOperation
 		return $idPedido;
 	}
 
+	
+
 
 	function getClientePedidos($IDCliente)
 	{
-		$sql = "SELECT * FROM Pedidos WHERE IDCliente = ".$IDCliente;
+		$sql = "SELECT IDPedido, IDCliente, DataPedido, ValorPedido FROM Pedidos WHERE IDCliente = ".$IDCliente;
 		$stmt = $this->con->prepare($sql);
 		$stmt->execute();
 		$stmt->bind_result($IDPedido, $IDCliente, $DataPedido, $ValorPedido);
@@ -104,13 +106,129 @@ class DbOperation
 		{
 			$id = array();
 			$id['ID'] = $this->retornaIDCliente($email, $senha);
-			//echo "O id do cliente é: ".$id;
-			array_push($resp, $id);
+			$dados = $this->pegarDadosUsuario($id['ID']);
+			//armazenando os dados do usuário no array dados
+			array_push($resp, $dados);
+			$this->mudarStatusLogin($id['ID']);
 			return $resp;
 		}
 		else
 		 return false; 
 		
+	}
+	
+	//PEGA OS DADOS DO USUÁRIO SE statusLogin for 1
+
+	function pegarDadosUsuario($id)
+	{
+		$stmt = $this->con->prepare("SELECT Clientes.IDCliente, Clientes.Nome,
+										 Clientes.Telefone, Clientes.Email
+										 FROM Clientes WHERE Clientes.IDCliente = '$id'");
+		$stmt->execute();
+		$stmt->bind_result($IDCliente, $Nome, $Telefone, $Email);
+		
+
+		//$dadosCliente = array(); 
+		$dado  = array();
+		while($stmt->fetch())
+		{
+
+			$dado['IDCliente'] = $IDCliente;
+			$dado['Nome'] = $Nome;	
+			$dado['Telefone'] = $Telefone; 
+			$dado['Email'] = $Email;
+			//array_push($dadosCliente, $dado); 
+		}
+
+		$sttLogin = $this->statusLogin($dado['IDCliente']);
+		$sttLogin = $sttLogin[0]["Status"];
+
+		if($sttLogin)
+		{
+			$dado['statusLogin'] = $sttLogin;
+			return $dado;
+		}
+		return false;
+		
+	}
+
+	//MUDA O STATUS DO LOGIN DEPENDENDO DO QUE ESTEJA
+	//função auxiliar
+	function mudarStatusLogin($id)
+	{
+		$stmt = $this->con->prepare("SELECT statusLogin FROM Logado WHERE IDCliente = '$id'");
+		$stmt->bind_result($status);
+		$stmt->execute();
+
+		$resultado = 0;
+		$statusLg  = array();
+
+		while($stmt->fetch()){
+			$resultado++;
+			$Lg = array();
+			$Lg['statusLogin'] = $status; 
+		
+			array_push($statusLg, $Lg); 
+		}
+
+		
+	
+		if($resultado > 0)
+		{
+			$statusLoginFinal = $statusLg[0]['statusLogin'];
+			if ($statusLoginFinal == 0)
+			{
+				$stmt = $this->con->prepare("UPDATE Logado SET statusLogin = 1,  DataLogin = NOW() WHERE IDCliente = '$id'");
+			}else 
+			{
+				$stmt = $this->con->prepare("UPDATE Logado SET statusLogin = 0,  DataLogin = NOW() WHERE IDCliente = '$id'");
+			}
+		}else 
+		{
+			$stmt = $this->con->prepare("INSERT INTO Logado (statusLogin, IDCliente)VALUES (1 ,'$id')");
+		}
+		if($stmt->execute())
+			return true;
+		return false;	
+		
+		
+	}
+
+	//PEGA O STATUS :D
+
+	function statusLogin($idCliente)
+	{
+
+		$stmt = $this->con->prepare("SELECT statusLogin FROM Logado WHERE IDCliente = '$idCliente'");
+		$stmt->execute();
+		$stmt->bind_result($id);
+		$resultado = 0;
+
+		while($stmt->fetch())
+		{
+			$resultado++;
+		}
+		
+		$status= null;
+		if($id == 1)
+		{
+			$status = true;
+		}
+		else
+		{
+			$status = false;
+		}	
+
+		$resp = array();
+		if($resultado > 0)
+		{
+			$idArray = array();
+			$idArray['Status'] = $status;
+			array_push($resp, $idArray);
+			return $resp;
+		}
+		else
+		 return false; 
 	}
 
 
@@ -165,27 +283,45 @@ class DbOperation
 	function getPedidos(){
 		$stmt = $this->con->prepare("SELECT Pedidos.IDPedido,
 									Pedidos.DataPedido,
+									Pedidos.ValorPedido,
+									Pedidos.Confirmado,
 									Clientes.Nome,
-									Pedidos.ValorPedido
-									FROM Pedidos INNER JOIN
-									Clientes ON Clientes.IDCliente = Pedidos.IDCliente
-									ORDER BY Pedidos.IDPedido");
-		$stmt->execute();
-		$stmt->bind_result($IDPedido, $DataPedido, $Nome, $ValorPedido);
-		
-		$pedidos = array(); 
-		
-		while($stmt->fetch()){
-			$pedido  = array();
-			$pedido['IDPedido'] = $IDPedido;
-			$pedido['DataPedido'] = $DataPedido; 
-			$pedido['Nome'] = $Nome;		
-			$pedido['ValorPedido'] = $ValorPedido;		
-			array_push($pedidos, $pedido); 
-		}
-		
-		return $pedidos; 
+									Produtos.NomeProduto,
+									Produtos.PrecoProduto,
+									ItensPedidos.QuantidadeVendida
+									FROM Produtos INNER JOIN (ItensPedidos INNER JOIN
+									(Pedidos INNER JOIN Clientes ON Clientes.IDCliente = Pedidos.IDCliente)
+									ON ItensPedidos.IDPedido = Pedidos.IDPedido)
+									ON ItensPedidos.IDProduto = Produtos.IDProduto
+									ORDER BY IDPedido");
+	$stmt->execute();
+	$stmt->bind_result($IDPedido, $DataPedido, $ValorPedido, $Confirmado, $Nome, $NomeProduto, $PrecoProduto, $QuantidadeVendida);
+	
+	$pedidos = array(); 
+	
+	while($stmt->fetch()){
+		$pedido  = array();
+		$pedido['IDPedido'] = $IDPedido;
+		$pedido['DataPedido'] = $DataPedido;
+		$pedido['ValorPedido'] = $ValorPedido;
+		$pedido['Confirmado'] = $Confirmado;
+		$pedido['Nome'] = $Nome;
+		$pedido['NomeProduto'] = $NomeProduto;
+		$pedido['PrecoProduto'] = $PrecoProduto;
+		$pedido['QuantidadeVendida'] = $QuantidadeVendida;
+		array_push($pedidos, $pedido);
 	}
+	
+	return $pedidos; 
+	}
+	
+	function confirmarPedido($Confirmado, $IDPedido){
+		$stmt = $this->con->prepare("UPDATE Pedidos SET Confirmado = ? WHERE IDPedido = ?");
+		$stmt->bind_param("ii", $Confirmado, $IDPedido);
+		if($stmt->execute())
+			return true; 
+		return false; 
+	} 
 
 	function cadastraItensPedidos($IDPedido, $IDProduto, $QuantidadeVendida)
     {
