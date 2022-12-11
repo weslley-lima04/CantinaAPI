@@ -96,21 +96,32 @@ class DbOperation
 		$stmt->bind_param("ss", $email, $senha);
 		$stmt->execute();
 		$resultado = 0;
+		
 		while($stmt->fetch())
 		{
 			$resultado++;
 		}
 		
+		//var_dump($sttLogin);
+		//$sttLogin = $sttLogin[0]['Status'];
+
 		$resp = array();
 		if($resultado > 0)
 		{
-			$id = array();
 			$id['ID'] = $this->retornaIDCliente($email, $senha);
-			$dados = $this->pegarDadosUsuario($id['ID']);
-			//armazenando os dados do usuário no array dados
-			array_push($resp, $dados);
 			$this->mudarStatusLogin($id['ID']);
-			return $resp;
+			$sttLogin = $this->statusLogin($id['ID']);
+
+			if($sttLogin)
+			{
+				$id = array();
+				$id['ID'] = $this->retornaIDCliente($email, $senha);
+				$dados = $this->pegarDadosUsuario($id['ID']);
+				//armazenando os dados do usuário no array dados
+				array_push($resp, $dados);
+				return $resp;
+			}
+				
 		}
 		else
 		 return false; 
@@ -122,10 +133,10 @@ class DbOperation
 	function pegarDadosUsuario($id)
 	{
 		$stmt = $this->con->prepare("SELECT Clientes.IDCliente, Clientes.Nome,
-										 Clientes.Telefone, Clientes.Email
+										 Clientes.Telefone, Clientes.Email, Clientes.Senha
 										 FROM Clientes WHERE Clientes.IDCliente = '$id'");
 		$stmt->execute();
-		$stmt->bind_result($IDCliente, $Nome, $Telefone, $Email);
+		$stmt->bind_result($IDCliente, $Nome, $Telefone, $Email, $Senha);
 		
 
 		//$dadosCliente = array(); 
@@ -137,6 +148,7 @@ class DbOperation
 			$dado['Nome'] = $Nome;	
 			$dado['Telefone'] = $Telefone; 
 			$dado['Email'] = $Email;
+			$dado['Senha'] = $Senha;
 			//array_push($dadosCliente, $dado); 
 		}
 
@@ -402,7 +414,6 @@ class DbOperation
 			if($stmt->execute())
 			return true;
 		}return false; 
-		
 		
 		
 	}

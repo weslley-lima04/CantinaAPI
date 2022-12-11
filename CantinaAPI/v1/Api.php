@@ -249,8 +249,18 @@
 				if($result)
 				{
 					$response['error'] = false; 
-					$response['message'] = 'logado com sucesso';
-					$response['Dados'] = $result; 
+					
+					//var_dump($result);
+					if ($result[0] != false)
+					{
+						$response['message'] = 'logado com sucesso';
+						$response['Dados'] = $result;
+						
+					}
+					else 
+					{
+						$response['message'] = 'deslogado com sucesso';
+					}
 				}else {
 					$response['error'] = true; 
 					$response['message'] = 'email ou senha incorretos!';
