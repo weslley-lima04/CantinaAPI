@@ -58,10 +58,10 @@ class DbOperation
 
 	function getClientePedidos($IDCliente)
 	{
-		$sql = "SELECT IDPedido, IDCliente, DataPedido, ValorPedido FROM Pedidos WHERE IDCliente = ".$IDCliente;
+		$sql = "SELECT * FROM Pedidos WHERE IDCliente = ".$IDCliente;
 		$stmt = $this->con->prepare($sql);
 		$stmt->execute();
-		$stmt->bind_result($IDPedido, $IDCliente, $DataPedido, $ValorPedido);
+		$stmt->bind_result($IDPedido, $IDCliente, $DataPedido, $ValorPedido, $Confirmado);
 
 		$pedidos = array(); 
 		
@@ -70,7 +70,8 @@ class DbOperation
 			$pedido['IDPedido'] = $IDPedido;
 			$pedido['IDCliente'] = $IDCliente;	
 			$pedido['DataPedido'] = $DataPedido; 
-			$pedido['ValorPedido'] = $ValorPedido;		
+			$pedido['ValorPedido'] = $ValorPedido;
+			$pedido['Confirmado'] = $Confirmado;		
 			array_push($pedidos, $pedido); 
 		}
 		
